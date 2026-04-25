@@ -1,0 +1,14 @@
+{
+  "conflict_id": "cf-test-001",
+  "severity": "error",
+  "elements": [100, 200],
+  "reason_code": "host_modified_while_child_owned_by_other",
+  "context": {
+    "acting_session": "user-1",
+    "child_owner": "user-2",
+    "host_category": "Walls",
+    "child_category": "Doors",
+    "host_id": 100,
+    "child_id": 200
+  }
+}

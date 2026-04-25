@@ -1,0 +1,26 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="RevitSync — Conflicts" Height="400" Width="320"
+        Background="#1E1E1E">
+  <Grid Margin="8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" Text="Live Conflict Feed" Foreground="#E8E8E8"
+               FontSize="14" FontWeight="Bold" Margin="0 0 0 8"/>
+
+    <!-- ConflictList is referenced by name in panel.py -->
+    <ListView x:Name="ConflictList" Grid.Row="1"
+              Background="#2D2D2D" Foreground="#F0F0F0"
+              BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Auto">
+      <ListView.ItemTemplate>
+        <DataTemplate>
+          <TextBlock Text="{Binding}" TextWrapping="Wrap"
+                     Foreground="#FFB347" Padding="4"/>
+        </DataTemplate>
+      </ListView.ItemTemplate>
+    </ListView>
+  </Grid>
+</Window>

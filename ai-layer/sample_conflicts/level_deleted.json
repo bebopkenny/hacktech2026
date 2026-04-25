@@ -1,0 +1,13 @@
+{
+  "conflict_id": "cf-test-003",
+  "severity": "error",
+  "elements": [301, 302, 303],
+  "reason_code": "level_deleted_with_owned_elements",
+  "context": {
+    "acting_session": "user-1",
+    "level_name": "Level 3",
+    "element_count": 3,
+    "affected_sessions": ["user-2", "user-3"],
+    "element_categories": ["Structural Columns", "Walls", "Floors"]
+  }
+}

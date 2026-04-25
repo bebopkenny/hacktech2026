@@ -1,0 +1,35 @@
+[
+  {
+    "comment": "Session 1 adds a wall on Level 1",
+    "session_id": "user-1",
+    "document": "hospital.rvt",
+    "timestamp": "2026-04-25T10:00:00Z",
+    "added": [
+      { "element_id": 100, "category": "Walls", "level": "L1" }
+    ],
+    "modified": [],
+    "deleted": []
+  },
+  {
+    "comment": "Session 2 adds a door hosted on that wall",
+    "session_id": "user-2",
+    "document": "hospital.rvt",
+    "timestamp": "2026-04-25T10:00:05Z",
+    "added": [
+      { "element_id": 200, "category": "Doors", "level": "L1", "host_id": 100 }
+    ],
+    "modified": [],
+    "deleted": []
+  },
+  {
+    "comment": "Session 1 modifies the wall — should trigger a conflict for user-2's door",
+    "session_id": "user-1",
+    "document": "hospital.rvt",
+    "timestamp": "2026-04-25T10:00:10Z",
+    "added": [],
+    "modified": [
+      { "element_id": 100, "category": "Walls", "level": "L1" }
+    ],
+    "deleted": []
+  }
+]

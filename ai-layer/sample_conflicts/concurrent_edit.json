@@ -1,0 +1,12 @@
+{
+  "conflict_id": "cf-test-002",
+  "severity": "warning",
+  "elements": [456],
+  "reason_code": "element_owned_by_other_session",
+  "context": {
+    "acting_session": "user-1",
+    "owning_session": "user-2",
+    "element_id": 456,
+    "category": "Structural Columns"
+  }
+}

@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  coordination:
+    build:
+      context: ./coordination-service
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      AI_LAYER_URL: http://ai-layer:8001
+      PORT: 8000
+    depends_on:
+      - ai-layer
+
+  ai-layer:
+    build:
+      context: ./ai-layer
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      PORT: 8001
+      K2_BASE_URL: https://api.k2think.ai/v1
+      K2_MODEL: MBZUAI-IFM/K2-Think-v2
