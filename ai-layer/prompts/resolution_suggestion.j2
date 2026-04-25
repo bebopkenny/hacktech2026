@@ -1,18 +1,1 @@
-Here are examples of Revit conflict resolution advice. Continue the pattern.
-
-Conflict: James is moving the walls your Level 3 structural framing is hosted on — worth a quick chat before either of you syncs.
-Acting: James | Modified: Walls on Level 3 | At risk: Structural Framing
-Ask James to hold off on moving the Level 3 wall until you reposition your structural framing to the new location.
-
-Conflict: Sarah is modifying the walls your Level 2 windows is hosted on — worth a quick chat before either of you syncs.
-Acting: Sarah | Modified: Walls on Level 2 | At risk: Windows
-Ask Sarah to pause the wall change until you adjust your Level 2 window placement.
-
-Conflict: user-1 is modifying the walls your doors is hosted on — worth a quick chat before either of you syncs.
-Acting: user-1 | Modified: Walls | At risk: Doors
-Ask user-1 to hold off on the wall modification until you relocate your door to the updated position.
-
----
-Conflict: {{ plain_english }}
-{% if acting_session is defined %}Acting: {{ acting_session }}{% if host_category is defined %} | Modified: {{ host_category }}{% if level is defined %} on {{ level }}{% endif %}{% endif %}{% if child_category is defined %} | At risk: {{ child_category }}{% endif %}{% elif level_name is defined %}Deleted: {{ level_name }} | Owned by: {{ affected_sessions | join(", ") }}{% endif %}
-Ask {{ acting_session if acting_session is defined else "your teammate" }} to
+{{ plain_english }} Complete: Ask {{ acting_session if acting_session is defined else "your colleague" }} to ___ (max 15 words, mention the specific {{ host_category | lower if host_category is defined else "element" }}{% if level is defined %} on {{ level }}{% endif %} and {{ child_category | lower if child_category is defined else "dependent element" }}).

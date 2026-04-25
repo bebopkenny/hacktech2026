@@ -77,8 +77,7 @@ async def explain_conflict(raw: dict) -> dict:
         **context,
     }).strip()
 
-    # K2 Think V2 reasons about the best resolution step.
-    # The prompt ends with "Ask [user] to " — K2 completes the sentence.
+    # K2 Think V2 fills in the blank: "Ask [user] to ___"
     acting = context.get("acting_session", "your teammate")
     suggestion_prompt = _render("resolution_suggestion.j2", {
         "plain_english": plain_english,
@@ -86,10 +85,10 @@ async def explain_conflict(raw: dict) -> dict:
         **context,
     })
     completion = await k2_think_complete(suggestion_prompt)
-    # Prepend the prefix that was used as the completion anchor in the prompt.
+    # If K2 returned only the completion (not the full sentence), prepend the prefix.
     if completion.lower().startswith("ask "):
         suggestion = completion
     else:
-        suggestion = f"Ask {acting} to {completion}"
+        suggestion = f"Ask {acting} to {completion.rstrip('.')}."
 
     return {"plain_english": plain_english, "suggestion": suggestion}
