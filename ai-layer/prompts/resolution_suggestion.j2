@@ -1,1 +1,7 @@
-{{ plain_english }} Complete: Ask {{ acting_session if acting_session is defined else "your colleague" }} to ___ (max 15 words, mention the specific {{ host_category | lower if host_category is defined else "element" }}{% if level is defined %} on {{ level }}{% endif %} and {{ child_category | lower if child_category is defined else "dependent element" }}).
+{% if reason_code == "level_deleted_with_owned_elements" -%}
+{{ plain_english }} Complete: Ask {{ acting_session }} to ___ (max 15 words, mention {{ level_name }} and the elements owned by {{ affected_sessions | join(" and ") }}).
+{%- elif reason_code == "element_owned_by_other_session" -%}
+{{ plain_english }} Complete: Ask {{ acting_session }} to ___ (max 15 words, mention the {{ category | singular }}).
+{%- else -%}
+{{ plain_english }} Complete: Ask {{ acting_session if acting_session is defined else "your colleague" }} to ___ (max 15 words, mention the specific {{ host_category | singular if host_category is defined else "element" }}{% if level is defined %} on {{ level }}{% endif %} and {{ child_category | singular if child_category is defined else "dependent element" }}).
+{%- endif %}

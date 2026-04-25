@@ -1,7 +1,7 @@
 {% if reason_code == "host_modified_while_child_owned_by_other" -%}
-{{ acting_session }} is {{ "mov" if action == "move" else "modify" }}ing the {{ host_category | lower }} your{% if level is defined %} {{ level }}{% endif %} {{ child_category | lower }} is hosted on — worth a quick chat before either of you syncs.
+{{ acting_session }} is {{ "mov" if action == "move" else "modify" }}ing the {{ host_category | singular }} your{% if level is defined %} {{ level }}{% endif %} {{ child_category | singular }} is hosted on — worth a quick chat before either of you syncs.
 {%- elif reason_code == "element_owned_by_other_session" -%}
-You and {{ acting_session }} are both editing the same {{ category | lower }}{% if level is defined %} on {{ level }}{% endif %} — one of your changes will be lost at sync.
+You and {{ acting_session }} are both editing the same {{ category | singular }}{% if level is defined %} on {{ level }}{% endif %} — one of your changes will be lost at sync.
 {%- elif reason_code == "level_deleted_with_owned_elements" -%}
 {{ acting_session }} is deleting {{ level_name }}, which has {{ element_count }} elements owned by {{ affected_sessions | join(" and ") }} — worth a quick chat before either of you syncs.
 {%- else -%}

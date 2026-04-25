@@ -11,6 +11,17 @@ import pathlib
 
 _env = Environment(loader=FileSystemLoader(pathlib.Path(__file__).parent / "prompts"))
 
+
+def _singular(s: str) -> str:
+    """Crude singularizer for Revit category names ('Walls' → 'wall', 'Structural Framing' → 'structural framing')."""
+    s = s.lower()
+    if s.endswith("s") and not s.endswith("ss"):
+        return s[:-1]
+    return s
+
+
+_env.filters["singular"] = _singular
+
 _MOCK_AI = os.getenv("MOCK_AI", "").lower() in ("1", "true", "yes")
 
 # Hardcoded realistic outputs used when MOCK_AI=1 (no API key needed).
@@ -46,13 +57,13 @@ def _mock_response(raw: dict) -> dict:
         return s.format(
             acting=ctx.get("acting_session", "your teammate"),
             owning=ctx.get("owning_session", "your teammate"),
-            host_cat=ctx.get("host_category", "element"),
-            child_cat=ctx.get("child_category", "dependent element"),
-            category=ctx.get("category", "element"),
+            host_cat=_singular(ctx.get("host_category", "element")),
+            child_cat=_singular(ctx.get("child_category", "dependent element")),
+            category=_singular(ctx.get("category", "element")),
             level=ctx.get("level", "this level"),
             level_name=ctx.get("level_name", "that level"),
             count=ctx.get("element_count", "several"),
-            sessions=", ".join(ctx.get("affected_sessions", ["your teammate"])),
+            sessions=" and ".join(ctx.get("affected_sessions", ["your teammate"])),
             reason=reason,
         )
 
