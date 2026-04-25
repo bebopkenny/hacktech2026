@@ -1,0 +1,17 @@
+{
+  "conflict_id": "cf-demo-002",
+  "severity": "warning",
+  "elements": [334, 335],
+  "reason_code": "host_modified_while_child_owned_by_other",
+  "context": {
+    "acting_session": "Sarah",
+    "owning_session": "James",
+    "host_category": "Walls",
+    "host_id": 334,
+    "child_category": "Windows",
+    "child_id": 335,
+    "level": "Level 2",
+    "action": "modify",
+    "offset_mm": 300
+  }
+}

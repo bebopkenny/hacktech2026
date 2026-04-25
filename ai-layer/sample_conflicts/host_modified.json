@@ -5,7 +5,7 @@
   "reason_code": "host_modified_while_child_owned_by_other",
   "context": {
     "acting_session": "user-1",
-    "child_owner": "user-2",
+    "owning_session": "user-2",
     "host_category": "Walls",
     "child_category": "Doors",
     "host_id": 100,

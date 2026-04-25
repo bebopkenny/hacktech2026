@@ -16,17 +16,28 @@ _client = AsyncOpenAI(
 
 K2_MODEL = os.getenv("K2_MODEL", "MBZUAI-IFM/K2-Think-v2")
 
+_SYSTEM = (
+    "You are a BIM coordination assistant. "
+    "Respond with only the final answer — one sentence, no thinking, no reasoning, no preamble."
+)
+
 
 async def k2_think_complete(prompt: str) -> str:
     response = await _client.chat.completions.create(
         model=K2_MODEL,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-        max_tokens=512,
-        # K2-Think-v2 streams by default in the docs; we disable it here for simplicity.
+        messages=[
+            {"role": "system", "content": _SYSTEM},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0,
+        max_tokens=256,
         stream=False,
     )
     raw = response.choices[0].message.content.strip()
-    # K2-Think emits a <think>…</think> block before its final answer — strip it.
+    # K2-Think may wrap reasoning in <think>…</think> or close with </think> (no opening tag).
     raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL).strip()
-    return raw
+    if "</think>" in raw:
+        raw = raw.split("</think>")[-1].strip()
+    # Take only the first non-empty line — guard against any trailing reasoning.
+    lines = [line.strip() for line in raw.splitlines() if line.strip()]
+    return lines[0] if lines else raw
