@@ -57,9 +57,9 @@ async def main():
             await sockets[session_id].send(json.dumps(event))
             await asyncio.sleep(0.3)
 
-        print("\nListening for conflict broadcasts (5s)...")
+        print("\nListening for conflict broadcasts (30s, waiting for K2 response)...")
         try:
-            async with asyncio.timeout(5):
+            async def listen():
                 async for message in ws1:
                     conflict = json.loads(message)
                     print("\n=== CONFLICT RECEIVED ===")
@@ -67,8 +67,9 @@ async def main():
                     print(f"  Elements : {conflict.get('elements')}")
                     print(f"  Message  : {conflict.get('plain_english')}")
                     print(f"  Suggest  : {conflict.get('suggestion')}")
-        except TimeoutError:
-            print("(no conflicts received in 5s)")
+            await asyncio.wait_for(listen(), timeout=30)
+        except asyncio.TimeoutError:
+            print("(no conflicts received in 30s)")
 
     print("\nDone.")
 
