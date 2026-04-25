@@ -1,0 +1,427 @@
+/* ─── Reset + base ─────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #0e1218;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #e0e0e0;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Layout shell ─────────────────────────────────────────────────────────── */
+
+.app-shell {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+}
+
+.viewport {
+  flex: 1;
+  height: 100%;
+  position: relative;  /* needed for HUD overlay positioning */
+}
+
+/* ─── Scene HUD overlay (title + subtitle) ─────────────────────────────────── */
+
+.scene-hud {
+  position: absolute;
+  top: 22px;
+  left: 26px;
+  z-index: 10;
+  pointer-events: none;
+  user-select: none;
+}
+
+.scene-hud-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+  line-height: 1.1;
+}
+
+.scene-hud-subtitle {
+  margin-top: 5px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.38);
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+/* ─── Panel shell ──────────────────────────────────────────────────────────── */
+
+.panel {
+  width: 300px;
+  flex-shrink: 0;
+  height: 100vh;
+  background: #141920;
+  border-left: 1px solid #1e2530;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #1e2a38 transparent;
+}
+
+/* ─── Panel header / branding ──────────────────────────────────────────────── */
+
+.panel-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid #1e2530;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.panel-header-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #e8f0f8;
+  letter-spacing: -0.01em;
+  flex: 1;
+}
+
+.panel-header-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #1e6bb8;
+  background: rgba(30, 107, 184, 0.1);
+  border: 1px solid rgba(30, 107, 184, 0.25);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+/* Pulsing dot — green when idle, amber when demo is active */
+.panel-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2a6040;
+  flex-shrink: 0;
+  transition: background 0.4s;
+}
+
+.panel-status-dot.active {
+  background: #ff8a65;
+  box-shadow: 0 0 6px rgba(255, 138, 101, 0.6);
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(255, 138, 101, 0.5); }
+  50%       { box-shadow: 0 0 10px rgba(255, 138, 101, 0.9); }
+}
+
+/* ─── Panel sections ───────────────────────────────────────────────────────── */
+
+.panel-section {
+  padding: 14px 20px;
+  border-bottom: 1px solid #1a2230;
+  transition: background 0.3s;
+}
+
+.panel-section-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #304560;
+  margin-bottom: 10px;
+}
+
+.panel-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Section variants */
+.panel-section--warn {
+  background: rgba(255, 183, 77, 0.04);
+  border-bottom-color: rgba(255, 183, 77, 0.12);
+}
+
+.panel-section--warn .panel-section-title {
+  color: #7a5a20;
+}
+
+.panel-section--impact {
+  background: rgba(255, 68, 68, 0.05);
+  border-bottom-color: rgba(255, 68, 68, 0.15);
+  animation: section-appear 0.3s ease;
+}
+
+.panel-section--impact .panel-section-title {
+  color: #7a3030;
+}
+
+@keyframes section-appear {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── User rows ────────────────────────────────────────────────────────────── */
+
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  color: #c0d0e0;
+}
+
+.user-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.user-name { flex: 1; }
+
+/* "→ wall-1" tag showing what an element the user is focused on (Google Docs style) */
+.user-focus-tag {
+  font-size: 10px;
+  color: var(--user-color, #888);
+  opacity: 0.85;
+  letter-spacing: 0.02em;
+  animation: badge-in 0.2s ease;
+}
+
+.user-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ff8a65;
+  background: rgba(255, 138, 101, 0.1);
+  border: 1px solid rgba(255, 138, 101, 0.3);
+  border-radius: 3px;
+  padding: 1px 6px;
+  animation: badge-in 0.2s ease;
+}
+
+@keyframes badge-in {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ─── Panel text variants ──────────────────────────────────────────────────── */
+
+.panel-text {
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0;
+  transition: color 0.3s;
+}
+
+.panel-text.muted      { color: #283848; }
+.panel-text.active     { color: #b8cce0; }
+.panel-text.warning    { color: #ffb74d; }
+.panel-text.ai         { color: #6dbe8d; }
+.panel-text.impact     { color: #ff5c5c; font-weight: 500; }
+.panel-text.impact-sub { color: #4a2a2a; font-size: 11px; margin-top: 4px; }
+
+/* ─── Mock AI badge ────────────────────────────────────────────────────────── */
+
+.mock-badge {
+  display: inline-block;
+  margin-top: 7px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1e4a28;
+  background: #111f16;
+  border: 1px solid #1e3a22;
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+
+/* ─── Activity feed ────────────────────────────────────────────────────────── */
+
+.activity-feed {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.activity-item {
+  font-size: 11px;
+  color: #2e4560;
+  padding-left: 12px;
+  position: relative;
+  line-height: 1.4;
+  animation: feed-in 0.25s ease;
+}
+
+.activity-item::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: #1e3450;
+}
+
+@keyframes feed-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ─── Controls ─────────────────────────────────────────────────────────────── */
+
+.panel-controls {
+  margin-top: auto;
+  padding: 18px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  border-top: 1px solid #1a2230;
+}
+
+.btn {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: none;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s, transform 0.1s;
+  text-align: center;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #1a5fa0;
+  color: #e8f2ff;
+  font-weight: 600;
+}
+
+.btn-primary:not(:disabled):hover { background: #2272b8; }
+
+.btn-secondary {
+  background: #1a2838;
+  color: #6aabcc;
+  border: 1px solid #243446;
+}
+
+.btn-secondary:not(:disabled):hover { background: #1f3044; }
+
+.btn-reset {
+  background: transparent;
+  color: #2e4560;
+  border: 1px solid #1a2838;
+  font-size: 12px;
+}
+
+.btn-reset:not(:disabled) {
+  color: #405a70;
+}
+
+.btn-reset:not(:disabled):hover {
+  background: #141e28;
+  color: #6080a0;
+  border-color: #243040;
+}
+
+/* ─── 3D element labels ────────────────────────────────────────────────────── */
+
+.element-label {
+  background: rgba(14, 18, 24, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-family: 'Segoe UI', system-ui, monospace;
+  color: #8aaac4;
+  white-space: nowrap;
+  pointer-events: none;
+  letter-spacing: 0.05em;
+  user-select: none;
+  transition: color 0.3s, border-color 0.3s, background 0.3s;
+}
+
+.element-label.label-editing {
+  color: #ff8a65;
+  border-color: rgba(255, 138, 101, 0.5);
+  background: rgba(255, 138, 101, 0.1);
+}
+
+/* Label state: element is selected/focused by any user */
+.element-label.label-selected {
+  color: #c8d8e8;
+  border-color: rgba(200, 216, 232, 0.4);
+  background: rgba(200, 216, 232, 0.07);
+}
+
+.element-label.label-conflict {
+  color: #ff4444;
+  border-color: rgba(255, 68, 68, 0.55);
+  background: rgba(255, 68, 68, 0.1);
+}
+
+/* ─── Presence chip (Google Docs floating name label) ──────────────────────── */
+
+.presence-chip {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 3px 3px 3px 0;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  color: var(--presence-color, #888);
+  background: color-mix(in srgb, var(--presence-color, #888) 14%, #0e1218);
+  border: 1px solid color-mix(in srgb, var(--presence-color, #888) 40%, transparent);
+  letter-spacing: 0.03em;
+  animation: chip-in 0.2s ease;
+}
+
+@keyframes chip-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ─── Scene HUD hint ───────────────────────────────────────────────────────── */
+
+.scene-hud-hint {
+  margin-top: 10px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.22);
+  letter-spacing: 0.04em;
+}
+
+.element-label.label-impact {
+  color: #ff2222;
+  border-color: rgba(255, 34, 34, 0.75);
+  background: rgba(255, 34, 34, 0.18);
+  font-weight: 700;
+  animation: label-pulse 1s ease-in-out infinite;
+}
+
+@keyframes label-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
