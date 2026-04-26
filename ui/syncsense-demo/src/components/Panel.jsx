@@ -12,8 +12,6 @@ function Section({ title, children, variant }) {
 }
 
 // ─── Live Users ───────────────────────────────────────────────────────────────
-// Shows who is online + what element they are currently focused on (presence),
-// similar to how Google Docs shows "James is on page 3".
 
 function LiveUsers({ editingUserId, userPresence }) {
   return (
@@ -50,6 +48,8 @@ export default function Panel({
   whatIfActive,
   activityFeed,
   userPresence,
+  aiResponse,
+  aiLoading,
   onSimulateJames,
   onWhatIf,
   onReset,
@@ -60,9 +60,11 @@ export default function Panel({
     ? `${USERS[activeEdit.userId]?.name ?? activeEdit.userId} moved ${activeEdit.elementId}.`
     : 'No active edit.'
 
-  const aiResponse       = getMockAiRecommendation(activeConflict)
-  const conflictWarning  = aiResponse?.warning ?? null
-  const aiRecommendation = aiResponse?.recommendation ?? null
+  // Use real K2 response if available, fall back to mock.
+  const mockResponse     = getMockAiRecommendation(activeConflict)
+  const conflictWarning  = aiResponse?.plain_english ?? mockResponse?.warning ?? null
+  const aiRecommendation = aiResponse?.suggestion    ?? mockResponse?.recommendation ?? null
+  const usingK2          = !!aiResponse
 
   const isDemoActive = !!activeEdit
 
@@ -88,7 +90,9 @@ export default function Panel({
 
       {/* Conflict Warning */}
       <Section title="Conflict Warning" variant={conflictWarning ? 'warn' : undefined}>
-        {conflictWarning ? (
+        {aiLoading ? (
+          <p className="panel-text muted">Analyzing conflict…</p>
+        ) : conflictWarning ? (
           <p className="panel-text warning">{conflictWarning}</p>
         ) : (
           <p className="panel-text muted">No conflicts detected.</p>
@@ -97,10 +101,12 @@ export default function Panel({
 
       {/* AI Recommendation */}
       <Section title="AI Recommendation">
-        {aiRecommendation ? (
+        {aiLoading ? (
+          <p className="panel-text muted">K2 Think V2 reasoning…</p>
+        ) : aiRecommendation ? (
           <>
             <p className="panel-text ai">{aiRecommendation}</p>
-            <span className="mock-badge">mock response</span>
+            <span className="mock-badge">{usingK2 ? 'K2 Think V2' : 'mock response'}</span>
           </>
         ) : (
           <p className="panel-text muted">—</p>

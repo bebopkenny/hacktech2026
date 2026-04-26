@@ -1,59 +1,137 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import Scene from './components/Scene'
 import Panel from './components/Panel'
 import {
   INITIAL_STATE,
   USERS,
+  DEPENDENCIES,
   makeEditEvent,
   makeConflict,
   getImpactedElements,
 } from './data/demoModel'
 import './App.css'
 
+const AI_LAYER_URL = 'http://localhost:8001'
+
 export default function App() {
   const [demoState, setDemoState] = useState(INITIAL_STATE)
+  const [aiResponse, setAiResponse] = useState(null)
+  const [aiLoading, setAiLoading] = useState(false)
 
-  // ─── Presence helpers ─────────────────────────────────────────────────────
+  // ─── Auto-seed: James joins and moves wall-1 on load ─────────────────────────
+  // Simulates a real collaborative session — James is already editing when you open the app.
+  useEffect(() => {
+    const t1 = setTimeout(() => {
+      setDemoState(prev => ({
+        ...prev,
+        userPresence: { ...prev.userPresence, 'user-james': 'wall-1' },
+        activityFeed: ['James joined the session.', 'James selected wall-1.'],
+      }))
+    }, 1000)
 
-  function setPresence(userId, elementId) {
-    setDemoState(prev => ({
-      ...prev,
-      userPresence: { ...prev.userPresence, [userId]: elementId },
-    }))
+    const t2 = setTimeout(() => {
+      const event = makeEditEvent({
+        userId:    'user-james',
+        elementId: 'wall-1',
+        action:    'move',
+        delta:     [2.5, 0, 0],
+      })
+      setDemoState(prev => ({
+        ...prev,
+        activeEdit:   event,
+        activityFeed: [...prev.activityFeed, 'James moved wall-1.'],
+      }))
+    }, 2200)
+
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [])
+
+  // ─── K2 conflict call ─────────────────────────────────────────────────────────
+  async function callK2(conflict) {
+    setAiLoading(true)
+    try {
+      const resp = await fetch(`${AI_LAYER_URL}/explain`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conflict_id: conflict.id,
+          severity:    'error',
+          elements:    [conflict.sourceElement, conflict.impactedElement],
+          reason_code: 'host_modified_while_child_owned_by_other',
+          context: {
+            acting_session: USERS[conflict.sourceUser]?.name ?? conflict.sourceUser,
+            host_category:  'Walls',
+            child_category: 'Structural Framing',
+            level:          'Level 3',
+            action:         'move',
+          },
+        }),
+      })
+      const data = await resp.json()
+      setAiResponse(data)
+      setDemoState(prev => ({
+        ...prev,
+        activityFeed: [...prev.activityFeed, 'K2 Think V2 generated real-time conflict analysis.'],
+      }))
+    } catch {
+      // AI layer unreachable — Panel falls back to mock automatically.
+    } finally {
+      setAiLoading(false)
+    }
   }
 
-  // ─── Clicking a 3D element sets "your" presence on it ────────────────────
-  // Clicking the same element again deselects (toggle).
-  function handleElementClick(elementId) {
+  // ─── Real-time element click ──────────────────────────────────────────────────
+  // When you click an element, check instantly if it conflicts with James's active edit.
+  async function handleElementClick(elementId) {
     setDemoState(prev => {
       const current = prev.userPresence['user-you']
       const next    = current === elementId ? null : elementId
-      const feedEntry = next
-        ? `You selected ${elementId}.`
-        : `You deselected ${elementId}.`
       return {
         ...prev,
         userPresence: { ...prev.userPresence, 'user-you': next },
-        activityFeed: [...prev.activityFeed, feedEntry],
+        activityFeed: [...prev.activityFeed,
+          next ? `You selected ${elementId}.` : `You deselected ${elementId}.`],
       }
     })
+
+    // Real-time conflict check: does this element depend on what James is editing?
+    const jamesEditId = demoState.activeEdit?.userId === 'user-james'
+      ? demoState.activeEdit.elementId
+      : null
+
+    if (!jamesEditId) return
+
+    const deps = DEPENDENCIES[elementId] ?? []
+    if (!deps.includes(jamesEditId)) return
+
+    // Conflict — James is editing something this element depends on.
+    const conflict = makeConflict({
+      sourceUser:      'user-james',
+      targetUser:      'user-you',
+      sourceElement:   jamesEditId,
+      impactedElement: elementId,
+      severity:        'high',
+    })
+
+    setDemoState(prev => ({
+      ...prev,
+      activeConflict: conflict,
+      activityFeed: [...prev.activityFeed,
+        `Conflict detected: ${elementId} depends on ${jamesEditId}.`],
+    }))
+
+    await callK2(conflict)
   }
 
-  // ─── Simulate James: presence → move → conflict ───────────────────────────
-  // Staged to feel like a real collaborative session:
-  //   0ms   — James's cursor appears on wall-1 (presence)
-  //   600ms — James starts moving wall-1 (edit event)
-  //   1500ms— Conflict detector fires, beam-1 highlighted
+  // ─── Simulate James (manual fallback) ────────────────────────────────────────
   function handleSimulateJames() {
-    // Stage 0: James selects wall-1
     setDemoState(prev => ({
       ...prev,
       userPresence: { ...prev.userPresence, 'user-james': 'wall-1' },
       activityFeed: [...prev.activityFeed, `${USERS['user-james'].name} selected wall-1.`],
     }))
 
-    // Stage 1: James moves the wall
     setTimeout(() => {
       const event = makeEditEvent({
         userId:    'user-james',
@@ -63,13 +141,12 @@ export default function App() {
       })
       setDemoState(prev => ({
         ...prev,
-        activeEdit:  event,
+        activeEdit:   event,
         activityFeed: [...prev.activityFeed, `${USERS['user-james'].name} moved wall-1.`],
       }))
     }, 600)
 
-    // Stage 2: Conflict detection
-    setTimeout(() => {
+    setTimeout(async () => {
       const impacted = getImpactedElements('wall-1')
       if (impacted.length === 0) return
 
@@ -80,18 +157,19 @@ export default function App() {
         impactedElement: impacted[0],
         severity:        'high',
       })
+
       setDemoState(prev => ({
         ...prev,
         activeConflict: conflict,
-        activityFeed: [
-          ...prev.activityFeed,
-          `Conflict detected: beam-1 depends on wall-1.`,
-        ],
+        activityFeed: [...prev.activityFeed,
+          `Conflict detected: beam-1 depends on wall-1.`],
       }))
+
+      await callK2(conflict)
     }, 1500)
   }
 
-  // ─── What-if simulation ───────────────────────────────────────────────────
+  // ─── What-if simulation ───────────────────────────────────────────────────────
   function handleWhatIf() {
     setDemoState(prev => ({
       ...prev,
@@ -100,9 +178,11 @@ export default function App() {
     }))
   }
 
-  // ─── Reset ────────────────────────────────────────────────────────────────
+  // ─── Reset ────────────────────────────────────────────────────────────────────
   function handleReset() {
     setDemoState(INITIAL_STATE)
+    setAiResponse(null)
+    setAiLoading(false)
   }
 
   return (
@@ -134,6 +214,8 @@ export default function App() {
         whatIfActive={demoState.whatIfActive}
         activityFeed={demoState.activityFeed}
         userPresence={demoState.userPresence}
+        aiResponse={aiResponse}
+        aiLoading={aiLoading}
         onSimulateJames={handleSimulateJames}
         onWhatIf={handleWhatIf}
         onReset={handleReset}
