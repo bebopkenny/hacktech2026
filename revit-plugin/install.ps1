@@ -17,14 +17,14 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-# ── helpers ──────────────────────────────────────────────────────────────────
+# -- helpers ------------------------------------------------------------------
 
 function Write-Step { param([string]$msg) Write-Host "`n>> $msg" -ForegroundColor Cyan }
 function Write-OK   { param([string]$msg) Write-Host "   OK   $msg" -ForegroundColor Green }
 function Write-Warn { param([string]$msg) Write-Host "   WARN $msg" -ForegroundColor Yellow }
 function Abort      { param([string]$msg) Write-Host "`nERROR: $msg" -ForegroundColor Red; exit 1 }
 
-# ── locate pyRevit extensions dir ────────────────────────────────────────────
+# -- locate pyRevit extensions dir --------------------------------------------
 
 Write-Step "Locating pyRevit extensions directory"
 
@@ -50,7 +50,7 @@ if (-not (Test-Path $extDir)) {
     Write-OK "Found $extDir"
 }
 
-# ── copy the extension ───────────────────────────────────────────────────────
+# -- copy the extension -------------------------------------------------------
 
 Write-Step "Copying RevitSync.extension"
 
@@ -70,7 +70,7 @@ if (Test-Path $dstExt) {
 Copy-Item -Recurse -Path $srcExt -Destination $dstExt -Force
 Write-OK "Installed to $dstExt"
 
-# ── locate pyRevit CPython 3 ─────────────────────────────────────────────────
+# -- locate pyRevit CPython 3 -------------------------------------------------
 
 Write-Step "Locating pyRevit's CPython 3 interpreter"
 
@@ -114,11 +114,11 @@ if (-not $pyRevitPython) {
     if ($LASTEXITCODE -eq 0) {
         Write-OK "websocket-client installed"
     } else {
-        Write-Warn "pip install returned exit code $LASTEXITCODE — check output above"
+        Write-Warn "pip install returned exit code $LASTEXITCODE -- check output above"
     }
 }
 
-# ── per-user config ──────────────────────────────────────────────────────────
+# -- per-user config ----------------------------------------------------------
 
 Write-Step "Configuring per-machine settings"
 
@@ -137,7 +137,7 @@ $sessionId  = if ($sidInput.Trim()) { $sidInput.Trim() } else { $defaultSID }
 [System.Environment]::SetEnvironmentVariable("REVITSYNC_SESSION_ID", $sessionId, "User")
 Write-OK "REVITSYNC_SESSION_ID = $sessionId"
 
-# ── done ─────────────────────────────────────────────────────────────────────
+# -- done ---------------------------------------------------------------------
 
 Write-Host @"
 
