@@ -62,7 +62,7 @@ python sample_data/send_sample.py
 
 ## Deployment (Vultr VM)
 
-See `deploy/` for Dockerfile and `setup.sh`. The service expects these env vars:
+See `deploy/Dockerfile`. End-to-end VM bootstrap lives at the repo root in `deploy/bootstrap.sh` (fresh install) and `deploy/update.sh` (redeploys). The service expects these env vars:
 
 ```
 AI_LAYER_URL=http://localhost:8001   # or the AI layer's internal address

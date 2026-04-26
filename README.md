@@ -63,4 +63,33 @@ See `coordination-service/models.py` for the canonical Pydantic models shared ac
 
 ## Deployment
 
-The coordination service and AI layer both run on a Vultr VM. See `coordination-service/deploy/` for Dockerfiles and setup scripts.
+The coordination service and AI layer both run on a Vultr VM via `docker-compose`.
+
+### Fresh VM (one-shot bootstrap)
+
+On a clean Ubuntu Vultr VM, as root:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/bebopkenny/hacktech2026/testing/deploy/bootstrap.sh | bash
+```
+
+This installs Docker, clones the repo to `/opt/revitsync`, prompts for `K2_API_KEY`, opens UFW ports 8000/8001, and brings the stack up. At the end it prints the `ws://<ip>:8000/ws` URL the Revit plugin should point at.
+
+To skip the interactive prompt, set `K2_API_KEY` first:
+
+```bash
+K2_API_KEY=sk-... bash <(curl -fsSL https://raw.githubusercontent.com/bebopkenny/hacktech2026/testing/deploy/bootstrap.sh)
+```
+
+### Update an existing VM
+
+```bash
+cd /opt/revitsync
+sudo bash deploy/update.sh
+```
+
+Pulls the latest commit on the configured branch and runs `docker compose up -d --build`.
+
+### Plugin install (Windows + Revit)
+
+See [revit-plugin/README.md](revit-plugin/README.md). TL;DR: install pyRevit, run `revit-plugin\install.ps1`, reload pyRevit.

@@ -17,8 +17,8 @@ import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-WS_URL = os.getenv("REVITVYNC_WS_URL", "ws://localhost:8000/ws")
-SESSION_ID = os.getenv("REVITVYNC_SESSION_ID", "panel-observer")
+WS_URL = os.getenv("REVITSYNC_WS_URL", "ws://localhost:8000/ws")
+SESSION_ID = os.getenv("REVITSYNC_SESSION_ID", "panel-observer")
 
 
 class ConflictPanel:

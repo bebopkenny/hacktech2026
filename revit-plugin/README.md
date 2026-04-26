@@ -1,30 +1,62 @@
-# revit-plugin — Person 1
+# revit-plugin
 
-Runs inside Revit via pyRevit. Listens for model changes, serializes them, and sends them to the coordination service. Receives conflict alerts and surfaces them in Revit.
+Runs inside Revit via pyRevit. Listens for model changes, ships them to the
+coordination service over WebSocket, and surfaces inbound conflict alerts as
+non-blocking WPF toast notifications in the corner of the screen.
 
-## Files
+## Layout
 
-| File | Purpose |
-|---|---|
-| `startup.py` | pyRevit entry point — registers all Revit event hooks |
-| `event_handler.py` | `DocumentChanged` handler, coerces raw Revit API types to dicts |
-| `serializer.py` | Converts Revit element snapshots → JSON matching the wire format |
-| `ws_client.py` | Async WebSocket client — sends events, receives conflict broadcasts |
-| `conflict_display.py` | Renders conflict alerts as Revit task dialogs / status bar messages |
-| `config.py` | Single place for the WebSocket URL and session user ID |
+```
+revit-plugin/
+  RevitSync.extension/                  pyRevit extension root
+    startup.py                          auto-runs on pyRevit load — registers DocumentChanged
+    lib/revitsync/                      shared library (added to sys.path by pyRevit)
+      config.py                         env-driven WS_URL / SESSION_ID
+      serializer.py                     Revit elements -> wire JSON
+      event_handler.py                  DocumentChanged -> serializer -> ws_client
+      ws_client.py                      persistent WS, auto-reconnect, dispatches to notifications
+      notifications.py                  WPF toast UI on a dedicated STA dispatcher thread
+    RevitSync.tab/Sync.panel/           ribbon UI
+      Status.pushbutton/                shows connection state + config
+      Test.pushbutton/                  fires a fake conflict to verify the toast UI
+  install.ps1                           Windows installer (run once per machine)
+  test_harness.py                       end-to-end test from a non-Revit Python (uses websockets)
+```
 
-## Setup
+## Requirements
 
-1. Install pyRevit on your Windows machine.
-2. Drop this folder into your pyRevit extensions directory.
-3. Edit `config.py` to point at the coordination service URL.
-4. Reload pyRevit.
+- Windows + Revit
+- [pyRevit](https://github.com/eirannejad/pyRevit) installed
+- pyRevit's **CPython 3** engine selected (not IronPython)
+  Switch via the pyRevit ribbon: `pyRevit -> Settings -> Engines`.
 
-## Key Revit API touchpoints
+## Install
 
-- `__revit__.Application.DocumentChanged` — fires after every transaction commit
-- `IUpdater` — alternative if you need pre-transaction hooks (not used here yet)
-- `FilteredElementCollector` — used in `serializer.py` to grab element geometry/parameters
+From a PowerShell prompt:
+
+```powershell
+cd revit-plugin
+.\install.ps1
+```
+
+The installer:
+1. Copies `RevitSync.extension/` into your pyRevit extensions directory.
+2. Installs `websocket-client` into pyRevit's CPython 3.
+3. Prompts for the WebSocket URL and your session ID, saves them as user env vars.
+4. Tells you to reload pyRevit.
+
+After install, open Revit. A new **RevitSync** tab should appear with two buttons:
+
+- **Status** — confirms the plugin is connected to the server.
+- **Test Toast** — fires a sample notification so you can verify the UI without touching the server.
+
+## Environment variables
+
+| Var | Default | Purpose |
+|---|---|---|
+| `REVITSYNC_WS_URL` | `ws://107.191.50.160:8000/ws` | Coordination service base URL (no trailing session id) |
+| `REVITSYNC_SESSION_ID` | `user-1` | Unique per person — appended to the WS URL |
+| `REVITSYNC_TOAST_LIFETIME_S` | `8` | Seconds a toast stays on screen |
 
 ## Wire format (outbound)
 
@@ -39,7 +71,7 @@ Runs inside Revit via pyRevit. Listens for model changes, serializes them, and s
 }
 ```
 
-See `coordination-service/models.py` for the canonical schema.
+Canonical schema: `coordination-service/models.py` (`ChangeEvent`).
 
 ## Wire format (inbound — conflict alert)
 
@@ -52,3 +84,20 @@ See `coordination-service/models.py` for the canonical schema.
   "elements": [123, 456]
 }
 ```
+
+Canonical schema: `coordination-service/models.py` (`EnrichedConflict`).
+
+## Threading model
+
+- `DocumentChanged` runs on the Revit UI thread — handler does the bare minimum and pushes work onto a daemon thread.
+- `ws_client` runs `run_forever` on its own thread; receive callbacks fire there.
+- `notifications` spins up a dedicated STA thread with a WPF `Dispatcher`. Toasts are scheduled onto it via `BeginInvoke`, so the WS thread never touches WPF directly and Revit's UI thread is never blocked.
+
+## Test without Revit
+
+```bash
+pip install websockets
+python revit-plugin/test_harness.py ws://107.191.50.160:8000/ws
+```
+
+Replays a wall/door conflict scenario against a real coordination service and prints the enriched conflict that comes back.

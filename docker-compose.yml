@@ -12,6 +12,13 @@ services:
       PORT: 8000
     depends_on:
       - ai-layer
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/health', timeout=3); sys.exit(0)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   ai-layer:
     build:
@@ -25,3 +32,10 @@ services:
       PORT: 8001
       K2_BASE_URL: https://api.k2think.ai/v1
       K2_MODEL: MBZUAI-IFM/K2-Think-v2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; urllib.request.urlopen('http://localhost:8001/health', timeout=3); sys.exit(0)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
