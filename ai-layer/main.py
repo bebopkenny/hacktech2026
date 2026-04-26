@@ -12,16 +12,25 @@ except ImportError:
     pass
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from explainer import explain_conflict
 
 app = FastAPI(title="RevitSync AI Layer")
 
+# Allow the React dev server and any local file origin to call this API.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["POST", "GET"],
+    allow_headers=["*"],
+)
+
 
 class RawConflictRequest(BaseModel):
     conflict_id: str
     severity: str
-    elements: list[int]
+    elements: list          # accepts both int IDs and string IDs (e.g. 'wall-1')
     reason_code: str
     context: dict
 
