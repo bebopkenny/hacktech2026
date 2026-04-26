@@ -1,4 +1,3 @@
-#! python3
 """
 pyRevit extension entry point.
 

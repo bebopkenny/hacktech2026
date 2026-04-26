@@ -5,13 +5,13 @@
 .DESCRIPTION
     1. Locates (or creates) the pyRevit extensions directory.
     2. Copies the RevitSync.extension folder into it (proper pyRevit layout).
-    3. Installs websocket-client into pyRevit's CPython 3 environment.
-    4. Writes per-user environment variables for WS_URL and SESSION_ID.
-    5. Reminds the user to reload pyRevit and ensure CPython3 is the active engine.
+    3. Writes per-user environment variables for WS_URL and SESSION_ID.
+    4. Reminds the user to reload pyRevit.
 
 .NOTES
-    Requires pyRevit to be installed and configured to use the CPython3 engine.
-    Switch engines from the pyRevit ribbon: pyRevit -> Settings -> Engines.
+    Plugin runs under pyRevit's IronPython 3 engine (the default). No pip
+    dependencies -- WebSocket support comes from .NET's built-in
+    System.Net.WebSockets.ClientWebSocket.
 #>
 
 Set-StrictMode -Version Latest
@@ -70,54 +70,6 @@ if (Test-Path $dstExt) {
 Copy-Item -Recurse -Path $srcExt -Destination $dstExt -Force
 Write-OK "Installed to $dstExt"
 
-# -- locate pyRevit CPython 3 -------------------------------------------------
-
-Write-Step "Locating pyRevit's CPython 3 interpreter"
-
-$candidates = @(
-    "$env:APPDATA\pyRevit-Master\bin\engines\CPY*\python.exe",
-    "$env:APPDATA\pyRevit\bin\engines\CPY*\python.exe",
-    "C:\ProgramData\pyRevit\bin\engines\CPY*\python.exe",
-    "C:\Program Files\pyRevit-Master\bin\engines\CPY*\python.exe",
-    "C:\Program Files\pyRevit\bin\engines\CPY*\python.exe"
-)
-
-$pyRevitPython = $null
-foreach ($pattern in $candidates) {
-    $hit = Get-ChildItem -Path $pattern -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($hit) { $pyRevitPython = $hit.FullName; break }
-}
-
-# Fall back to the pyrevit CLI for the python path
-if (-not $pyRevitPython) {
-    $pyrevitCLI = Get-Command "pyrevit" -ErrorAction SilentlyContinue
-    if ($pyrevitCLI) {
-        try {
-            $envInfo = & pyrevit env 2>&1 | Out-String
-            $match = [regex]::Match($envInfo, 'python(?:\.exe)?\s*[:=]\s*(.+\.exe)')
-            if ($match.Success) { $pyRevitPython = $match.Groups[1].Value.Trim() }
-        } catch {
-            Write-Warn "pyrevit CLI present but could not read env: $($_.Exception.Message)"
-        }
-    }
-}
-
-if (-not $pyRevitPython) {
-    Write-Warn "Could not auto-detect pyRevit's CPython 3."
-    Write-Warn "Install websocket-client manually into pyRevit's CPython 3:"
-    Write-Warn "    <pyrevit-cpython3>\python.exe -m pip install websocket-client"
-} else {
-    Write-OK "Found: $pyRevitPython"
-
-    Write-Step "Installing websocket-client into pyRevit's CPython 3"
-    & $pyRevitPython -m pip install --quiet --upgrade websocket-client
-    if ($LASTEXITCODE -eq 0) {
-        Write-OK "websocket-client installed"
-    } else {
-        Write-Warn "pip install returned exit code $LASTEXITCODE -- check output above"
-    }
-}
-
 # -- per-user config ----------------------------------------------------------
 
 Write-Step "Configuring per-machine settings"
@@ -149,10 +101,14 @@ Write-Host @"
   Session   : $sessionId
 
   Next steps:
-    1. Open Revit (or restart it if it was open).
-    2. In the pyRevit ribbon: pyRevit -> Settings -> Engines -> select CPython3.
-    3. pyRevit -> Reload (or restart Revit).
-    4. New "RevitSync" tab should appear with Status + Test Toast buttons.
-    5. Click "Test Toast" to verify the notification UI.
+    1. Open Revit (or fully close and reopen if it was open -- env vars
+       are read at process startup).
+    2. In the pyRevit ribbon: click Reload.
+    3. New "RevitSync" tab should appear with Status + Test Toast buttons.
+    4. Click "Test Toast" to verify the notification UI.
+
+  Engine note:
+    Plugin runs under IronPython 3 (the default Active Engine). No need
+    to switch engines or pip-install anything.
 ----------------------------------------------------------------
 "@ -ForegroundColor Green
