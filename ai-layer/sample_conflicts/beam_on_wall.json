@@ -1,0 +1,17 @@
+{
+  "conflict_id": "cf-demo-001",
+  "severity": "error",
+  "elements": [482910, 593821],
+  "reason_code": "host_modified_while_child_owned_by_other",
+  "context": {
+    "acting_session": "James",
+    "owning_session": "Kenny",
+    "host_category": "Walls",
+    "host_id": 482910,
+    "child_category": "Structural Framing",
+    "child_id": 593821,
+    "level": "Level 3",
+    "action": "move",
+    "offset_mm": 600
+  }
+}
