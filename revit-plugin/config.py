@@ -8,7 +8,8 @@ SESSION_ID = os.getenv("REVITVYNC_SESSION_ID", "user-1")
 
 
 
-
+from revit_plugin.startup import main
+main()
 
 from pyrevit import forms
 from Autodesk.Revit.UI import TaskDialog
