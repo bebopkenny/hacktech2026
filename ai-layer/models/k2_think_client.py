@@ -22,7 +22,7 @@ async def k2_think_complete(prompt: str) -> str:
         model=K2_MODEL,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.3,
-        max_tokens=1024,
+        max_tokens=400,
         stream=False,
     )
     raw = response.choices[0].message.content.strip()
