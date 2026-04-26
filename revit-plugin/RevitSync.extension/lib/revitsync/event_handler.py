@@ -1,4 +1,4 @@
-"""DocumentChanged listener. Keep work here minimal — it runs on the Revit UI thread."""
+"""DocumentChanged listener. Keep work here minimal -- it runs on the Revit UI thread."""
 import threading
 
 from revitsync.serializer import serialize_change_event

@@ -24,6 +24,6 @@ def register_handlers(uiapp):
 
 
 try:
-    register_handlers(__revit__)  # noqa: F821 — pyRevit injects __revit__
+    register_handlers(__revit__)  # noqa: F821 -- pyRevit injects __revit__
 except Exception as e:
     logger.error("RevitSync startup failed: {}".format(e))

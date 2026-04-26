@@ -1,1 +1,1 @@
-"""RevitSync — pyRevit extension shared library."""
+"""RevitSync -- pyRevit extension shared library."""
