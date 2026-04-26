@@ -1,3 +1,4 @@
+#! python3
 """Fire a sample conflict toast -- useful for verifying the UI without touching the server."""
 from revitsync import notifications
 

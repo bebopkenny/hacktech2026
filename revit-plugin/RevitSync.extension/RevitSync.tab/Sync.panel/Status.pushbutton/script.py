@@ -1,3 +1,4 @@
+#! python3
 """Show current RevitSync connection state."""
 from pyrevit import forms
 
